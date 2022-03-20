@@ -15,7 +15,7 @@ const userSignUpSchema = {
     },
     required: ['email', 'password'],
   },
-}
+} as const
 
 const searchUserSchema = {
   body: {
@@ -37,9 +37,10 @@ const searchUserSchema = {
         default: '',
       },
     },
+    required: ['page', 'size', 'keyword'],
     additionalProperties: false,
   },
-}
+} as const
 
 const userLoginSchema = {
   body: {
@@ -57,6 +58,6 @@ const userLoginSchema = {
     required: ['email', 'password'],
     additionalProperties: false,
   },
-}
+} as const
 
 export { userSignUpSchema, searchUserSchema, userLoginSchema }

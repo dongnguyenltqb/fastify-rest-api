@@ -1,13 +1,10 @@
 import { Client } from '@elastic/elasticsearch'
 import config from '../config'
-import logger from '../utils/logger'
 
-const es7 = new Client({ node: config.elasticsearch_uri })
+const client = new Client({ node: config.elasticsearch_uri })
 
-async function ping(): Promise<void> {
-  await es7.ping()
-  logger.info('Elasticseach is connected')
+function getElasticSearchClient() {
+  return client
 }
 
-export { ping }
-export default es7
+export { getElasticSearchClient }

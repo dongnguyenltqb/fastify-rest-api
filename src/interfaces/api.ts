@@ -1,16 +1,14 @@
 import { FastifyRequest } from 'fastify'
+import { IUserJwt } from './users.dto'
 
-interface IApiResponse {
+interface IAPIResponse<T> {
   status?: boolean
   message?: string
-  data?: any
+  data?: T | unknown
 }
 
-interface IRequestData extends FastifyRequest<IRequestData> {
-  QueryStrings: any
-  Params: any
-  Body: any
-  Headers: any
+interface IRequestData extends FastifyRequest {
+  user: IUserJwt
 }
 
-export { IRequestData, IApiResponse }
+export { IRequestData, IAPIResponse }

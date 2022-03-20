@@ -1,70 +1,58 @@
-import mongoose from 'mongoose'
+import { User, UserModel } from '../models'
+import constant from '../utils/constant'
+import JwtUtil from '../utils/jwt'
 
-import models from '../models'
 import {
   ICreateUser,
-  IESUser,
   ISearchUser,
   ISearchUserResult,
-} from '../interfaces/users'
-import es7 from '../infra/elasticsearch'
-import { IESSearchResponse } from '../interfaces/elasticsearch'
-import { IUserDocument } from '../models/users/users.types'
+  IUserToken,
+} from '../interfaces/users.dto'
+import { UserRepository } from '../repository'
 
-async function createUser(inp: ICreateUser): Promise<IUserDocument> {
-  const u = new models.users({
-    _id: new mongoose.Types.ObjectId(),
-    email: inp.email,
-    password: inp.password,
-    firstName: inp.firstName,
-  })
-  u.password = await u.hashPassword()
-  await u.save()
-  return u
-}
-
-async function searchUser(input: ISearchUser): Promise<ISearchUserResult> {
-  const { page, size, keyword } = input
-  const resp = await es7.search<IESSearchResponse<IESUser>>({
-    index: 'users',
-    body: {
-      query: {
-        bool: {
-          should: keyword
-            ? [
-                {
-                  match: {
-                    firstName: keyword,
-                  },
-                },
-                {
-                  match: {
-                    lastName: keyword,
-                  },
-                },
-                {
-                  match: {
-                    email: keyword,
-                  },
-                },
-              ]
-            : [],
+export class UserService {
+  private userRepository: UserRepository
+  constructor(userRepository: UserRepository) {
+    this.userRepository = userRepository
+  }
+  public async getUserByEmail(email: string): Promise<User> {
+    const user = await this.userRepository.findByEmail(email)
+    return user ? user.toServiceObject() : null
+  }
+  signToken(email: string): IUserToken {
+    return {
+      accessToken: JwtUtil.signWithExpires(
+        {
+          type: constant.jwt_access_token_type,
+          email,
         },
-      },
-    },
-    from: (page - 1) * size,
-    size: size,
-  })
-  const data = resp.body.hits.hits
-  const users: IESUser[] = []
-  for (const user of data) {
-    users.push({ ...user._source, _score: user._score })
+        60 * 60,
+      ),
+      refreshToken: JwtUtil.signWithExpires(
+        {
+          type: constant.jwt_refresh_token_type,
+          email,
+        },
+        30 * 24 * 60 * 60,
+      ),
+    }
   }
-  const result: ISearchUserResult = {
-    total: resp.body.hits.total.value,
-    data: users,
+  public async login(email: string, password: string): Promise<IUserToken> {
+    const doc = await this.getUserByEmail(email)
+    if (!doc) throw new Error('user not found')
+    const equal = doc.comparePassword(password)
+    if (!equal) throw new Error('Invalid password.')
+    return this.signToken(email)
   }
-  return result
+  public async createUser(input: ICreateUser): Promise<User> {
+    const u = new User({
+      email: input.email,
+      password: input.password,
+    })
+    u.password = await u.hashPassword()
+    return u
+  }
+  public async searchUser(input: ISearchUser): Promise<ISearchUserResult> {
+    return await this.userRepository.searchUserElasticsearch(input)
+  }
 }
-
-export { createUser, searchUser }

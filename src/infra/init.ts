@@ -1,15 +1,19 @@
 import logger from '../utils/logger'
-import { ping as esPing } from './elasticsearch'
 import { ping as redisPing } from './redis'
 import { connect } from './mongoose'
+import { getElasticSearchClient } from './elasticsearch'
 
-async function init(): Promise<void> {
-  try {
-    await Promise.all([connect(), esPing(), redisPing()])
-  } catch (err) {
-    logger.error(err)
-    process.exit(1)
+export default class Infra {
+  static async setup(): Promise<void> {
+    try {
+      await Promise.all([
+        connect(),
+        getElasticSearchClient().ping(),
+        redisPing(),
+      ])
+    } catch (err) {
+      logger.error(err)
+      process.exit(1)
+    }
   }
 }
-
-export { init }
