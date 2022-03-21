@@ -1,4 +1,4 @@
-import { UserModel } from '../models'
+import { User, UserModel } from '../models'
 import { AbstractRepository } from './abstract'
 import { db } from '../infra'
 import {
@@ -6,12 +6,17 @@ import {
   IESUserSearchDocument,
   ISearchUser,
   ISearchUserResult,
+  IUserDocument,
 } from '../interfaces/users.dto'
 
 export class UserRepository extends AbstractRepository<typeof db> {
   public async findByEmail(email: string): Promise<UserModel> {
     const document = await this.db.user.findOne({ email }).exec()
-    return document ? new UserModel(document.toJSON()) : null
+    return document ? new UserModel(document) : null
+  }
+  public async createUser(user: UserModel): Promise<UserModel> {
+    const doc = await this.db.user.create(user)
+    return doc ? new UserModel(doc.toJSON()) : null
   }
   public async searchUserElasticsearch(
     input: ISearchUser,

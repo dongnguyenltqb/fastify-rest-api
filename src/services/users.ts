@@ -50,7 +50,8 @@ export class UserService {
       password: input.password,
     })
     u.password = await u.hashPassword()
-    return u
+    const response = await this.userRepository.createUser(u.toUserModel())
+    return response.toServiceObject()
   }
   public async searchUser(input: ISearchUser): Promise<ISearchUserResult> {
     return await this.userRepository.searchUserElasticsearch(input)

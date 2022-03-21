@@ -23,7 +23,7 @@ async function userRoutes(fastify: FastifyInstance): Promise<void> {
       const doc = await userService.getUserByEmail(email)
       if (doc) throw new Error('User was existed')
       const user = await userService.createUser(body)
-      handleSuccessResponse(res, true, user)
+      handleSuccessResponse(res, true, user.getPublicObject())
     } catch (err) {
       handleErrorResponse(res, err)
     }

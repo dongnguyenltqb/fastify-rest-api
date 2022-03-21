@@ -1,11 +1,18 @@
 import { FromSchema } from 'json-schema-to-ts'
 import { JwtPayload } from 'jsonwebtoken'
+import { Document } from 'mongoose'
 import {
   searchUserSchema,
   userLoginSchema,
   userSignUpSchema,
 } from '../validations/users'
 import { IUser } from './entity'
+
+export interface IUserPublic {
+  _id: string
+  email: string
+  firstName?: string
+}
 
 export interface IUserJwt extends JwtPayload {
   type: string
@@ -36,3 +43,5 @@ export interface IESUserPreIndexDocument extends IUser {}
 export interface IESUserIndexResult {
   _id: string
 }
+
+export interface IUserDocument extends Document, IUser {}
