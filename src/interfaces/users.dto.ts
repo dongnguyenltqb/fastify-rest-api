@@ -9,7 +9,7 @@ import {
 import { IUser } from './entity'
 
 export interface IUserPublic {
-  _id: string
+  user_id: string
   email: string
   firstName?: string
 }
@@ -44,4 +44,4 @@ export interface IESUserIndexResult {
   _id: string
 }
 
-export interface IUserDocument extends Document, IUser {}
+export interface IUserDocument extends IUser, Document {}

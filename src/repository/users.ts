@@ -1,4 +1,4 @@
-import { User, UserModel } from '../models'
+import { UserModel } from '../models'
 import { AbstractRepository } from './abstract'
 import { db } from '../infra'
 import {
@@ -6,7 +6,6 @@ import {
   IESUserSearchDocument,
   ISearchUser,
   ISearchUserResult,
-  IUserDocument,
 } from '../interfaces/users.dto'
 
 export class UserRepository extends AbstractRepository<typeof db> {
@@ -16,7 +15,7 @@ export class UserRepository extends AbstractRepository<typeof db> {
   }
   public async createUser(user: UserModel): Promise<UserModel> {
     const doc = await this.db.user.create(user)
-    return doc ? new UserModel(doc.toJSON()) : null
+    return doc ? new UserModel(doc) : null
   }
   public async searchUserElasticsearch(
     input: ISearchUser,

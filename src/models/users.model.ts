@@ -3,32 +3,42 @@ import bcrypt from 'bcrypt'
 import config from '../config'
 import { IUser } from '../interfaces/entity'
 import { AbstractModel } from './abstract'
-import { IESUserDocument, IUserPublic } from '../interfaces/users.dto'
+import {
+  IESUserDocument,
+  IUserDocument,
+  IUserPublic,
+} from '../interfaces/users.dto'
 
 // Represent data which come from MongoDB
 // Call constructor to create a new instance
-export class UserModel implements AbstractModel<IUser> {
-  _id: mongoose.Types.ObjectId
+export class UserModel implements AbstractModel<User> {
+  _id?: mongoose.Types.ObjectId
   email: string
   password: string
   firstName: string
-  constructor(user: IUser) {
-    if (user._id) this._id = new mongoose.Types.ObjectId(user._id)
-    this.email = user.email
-    this.password = user.password
-    this.firstName = user.firstName
+  constructor(user?: IUserDocument) {
+    if (user) {
+      if (user._id) {
+        this._id = user._id
+      }
+      this.email = user.email
+      this.password = user.password
+      this.firstName = user.firstName
+    }
   }
   public static fromServiceObject(user: User): UserModel {
-    return new UserModel({
-      _id: user._id ? Object(user._id) : null,
-      email: user.email,
-      password: user.password,
-      firstName: user.firstName,
-    })
+    const u = new UserModel()
+    if (user.user_id) {
+      u._id = new mongoose.Types.ObjectId(user.user_id)
+    }
+    u.email = user.email
+    u.password = user.password
+    u.firstName = user.firstName
+    return u
   }
   public toServiceObject(): User {
     return new User({
-      _id: this._id.toHexString(),
+      user_id: this._id?.toHexString(),
       email: this.email,
       password: this.password,
       firstName: this.firstName,
@@ -37,13 +47,13 @@ export class UserModel implements AbstractModel<IUser> {
 }
 
 export class User implements IUser {
-  _id: string
+  user_id: string
   email: string
   password: string
   firstName: string
 
   constructor(user: IUser) {
-    this._id = user._id
+    this.user_id = user.user_id
     this.email = user.email
     this.password = user.password
     this.firstName = user.firstName
@@ -71,7 +81,7 @@ export class User implements IUser {
   }
   public getPublicObject(): IUserPublic {
     return {
-      _id: this._id,
+      user_id: this.user_id,
       email: this.email,
       firstName: this.firstName,
     }
